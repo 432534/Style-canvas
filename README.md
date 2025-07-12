@@ -1,4 +1,5 @@
 # StyleCanvas - Fashion Outfit Builder
+<img width="1833" height="880" alt="image" src="https://github.com/user-attachments/assets/b58bb367-f958-48f7-b2c7-ddd90f12a287" />
 
 A modern, interactive web application for creating and styling fashion outfits with drag-and-drop functionality.
 
