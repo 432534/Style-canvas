@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, type DragEvent, useRef, type MouseEvent, useEffect } from 'react';
@@ -24,35 +25,47 @@ type CanvasItem = ClothingItem & {
   instanceId: number;
   x: number;
   y: number;
+  zIndex: number;
 };
 type CartItem = ClothingItem & { quantity: number; };
 
+
 const wardrobe: ClothingItem[] = [
-  { id: 1, name: 'Belt', imageUrl: '/images/accessories/belt.jpg', type: 'accessory', hint: 'belt' },
-  { id: 2, name: 'Belt', imageUrl: '/images/accessories/belt2.webp', type: 'accessory', hint: 'belt2' },
+  { id: 1, name: 'Belt', imageUrl: '/images/accessories/belt.png', type: 'accessory', hint: 'belt' },
+  { id: 2, name: 'Belt', imageUrl: '/images/accessories/belt2.png', type: 'accessory', hint: 'belt2' },
   { id: 3, name: 'Cap', imageUrl: '/images/accessories/cap.png', type: 'accessory', hint: 'cap' },
   { id: 4, name: 'Hat', imageUrl: '/images/accessories/hat.png', type: 'accessory', hint: 'hat' },
-  { id: 5, name: 'Sunglasses', imageUrl: '/images/accessories/sunglasses.jpg', type: 'accessory', hint: 'sunglasses' },
-  { id: 6, name: 'Bottom', imageUrl: '/images/bottoms/bottom1.webp', type: 'bottom', hint: 'bottom' },
-  { id: 7, name: 'Bottom2', imageUrl: '/images/bottoms/bottom2.webp', type: 'bottom', hint: 'bottom1' },
-  { id: 8, name: 'Bottom3', imageUrl: '/images/bottoms/bottom3.jpg', type: 'bottom', hint: 'bottom2' },
+  { id: 5, name: 'Sunglasses', imageUrl: '/images/accessories/Sunglasses.png', type: 'accessory', hint: 'sunglasses' },
+  { id: 6, name: 'Bottom', imageUrl: '/images/bottoms/bottom1.png', type: 'bottom', hint: 'bottom' },
+  { id: 7, name: 'Bottom2', imageUrl: '/images/bottoms/bottom2.png', type: 'bottom', hint: 'bottom1' },
+  { id: 8, name: 'Bottom3', imageUrl: '/images/bottoms/bottom3.png', type: 'bottom', hint: 'bottom2' },
   { id: 9, name: 'Bottom4', imageUrl: '/images/bottoms/bottom4.png', type: 'bottom', hint: 'bottom3' },
   { id: 10, name: 'Bottom5', imageUrl: '/images/bottoms/bottom5.png', type: 'bottom', hint: 'bottom4' },
-  { id: 11, name: 'Shoes1', imageUrl: '/images/shoes/shoes1.webp', type: 'shoes', hint: 'shoes' },
-  { id: 12, name: 'Shoes2', imageUrl: '/images/shoes/shoes2.webp', type: 'shoes', hint: 'shoes1' },
-  { id: 13, name: 'Shoes3', imageUrl: '/images/shoes/shoes3.jpg', type: 'shoes', hint: 'shoes2' },
-  { id: 14, name: 'Shoes4', imageUrl: '/images/shoes/shoes4.jpg', type: 'shoes', hint: 'shoes3' },
+  { id: 11, name: 'Shoes1', imageUrl: '/images/shoes/shoes1.png', type: 'shoes', hint: 'shoes' },
+  { id: 12, name: 'Shoes2', imageUrl: '/images/shoes/shoes2.png', type: 'shoes', hint: 'shoes1' },
+  { id: 13, name: 'Shoes3', imageUrl: '/images/shoes/shoes3.png', type: 'shoes', hint: 'shoes2' },
+  { id: 14, name: 'Shoes4', imageUrl: '/images/shoes/shoes4.png', type: 'shoes', hint: 'shoes3' },
   { id: 15, name: 'Shoes5', imageUrl: '/images/shoes/shoes5.png', type: 'shoes', hint: 'shoes4' },
-  { id: 16, name: 'Top1', imageUrl: '/images/tops/top1.webp', type: 'top', hint: 'top' },
-  { id: 17, name: 'Top2', imageUrl: '/images/tops/top2.jpg', type: 'top', hint: 'top1' },
-  { id: 18, name: 'Top3', imageUrl: '/images/tops/top3.jpg', type: 'top', hint: 'top2' },
+  { id: 16, name: 'Top1', imageUrl: '/images/tops/top1.png', type: 'top', hint: 'top' },
+  { id: 17, name: 'Top2', imageUrl: '/images/tops/top2.png', type: 'top', hint: 'top1' },
+  { id: 18, name: 'Top3', imageUrl: '/images/tops/top3.png', type: 'top', hint: 'top2' },
   { id: 19, name: 'Top4', imageUrl: '/images/tops/top4.png', type: 'top', hint: 'top3' },
   { id: 20, name: 'Top5', imageUrl: '/images/tops/top5.png', type: 'top', hint: 'top4' },
 ];
 
 const MIN_CANVAS_HEIGHT = 400;
-const ITEM_WIDTH = 116; 
-const ITEM_HEIGHT = 116; 
+const ITEM_WIDTH = 100;
+const ITEM_HEIGHT = 100;
+
+const getZIndex = (type: ClothingType) => {
+    switch (type) {
+        case 'bottom': return 10;
+        case 'shoes': return 15;
+        case 'top': return 20;
+        case 'accessory': return 30;
+        default: return 1;
+    }
+};
 
 export default function StyleCanvasClient() {
   const [outfitPreview, setOutfitPreview] = useState<CanvasItem[]>([]);
@@ -103,22 +116,7 @@ export default function StyleCanvasClient() {
     e.preventDefault();
     setHighlightDrop(false);
   };
-  
-  const isOverlapping = (x: number, y: number, currentItemId: number, items: CanvasItem[]) => {
-    for (const item of items) {
-      if (item.instanceId === currentItemId) continue;
-      if (
-        x < item.x + ITEM_WIDTH &&
-        x + ITEM_WIDTH > item.x &&
-        y < item.y + ITEM_HEIGHT &&
-        y + ITEM_HEIGHT > item.y
-      ) {
-        return true;
-      }
-    }
-    return false;
-  };
-  
+    
   const onDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setHighlightDrop(false);
@@ -129,70 +127,42 @@ export default function StyleCanvasClient() {
     if (currentDragItem) {
         let newX = e.clientX - canvasRect.left - dragItemOffset.current.x;
         let newY = e.clientY - canvasRect.top - dragItemOffset.current.y;
+        
         newX = Math.max(0, Math.min(newX, canvasRect.width - ITEM_WIDTH));
         newY = Math.max(0, Math.min(newY, canvasHeight - ITEM_HEIGHT));
 
-        if (!isOverlapping(newX, newY, currentDragItem.instanceId, outfitPreview)) {
-          setOutfitPreview(prev =>
-              prev.map(item =>
-                  item.instanceId === currentDragItem.instanceId
-                      ? { ...item, x: newX, y: newY }
-                      : item
-              )
-          );
-        } else {
-            toast({
-                variant: 'destructive',
-                title: 'Overlapping Items',
-                description: 'Please drop the item in an empty space.',
-            });
-        }
+        setOutfitPreview(prev =>
+            prev.map(item =>
+                item.instanceId === currentDragItem.instanceId
+                    ? { ...item, x: newX, y: newY }
+                    : item
+            )
+        );
+        
         dragItem.current = null;
         return;
     }
-    const data = JSON.parse(e.dataTransfer.getData('application/json'));
-if (data.type === 'wardrobe') {
-    const itemFromWardrobe = wardrobe.find(p => p.id === data.id); 
+        const data = JSON.parse(e.dataTransfer.getData('application/json'));
+    if (data.type === 'wardrobe') {
+        const droppedItem = wardrobe.find(piece => piece.id === data.id);
+        if (droppedItem) {
+            let initialX = e.clientX - canvasRect.left - (ITEM_WIDTH / 2);
+            let initialY = e.clientY - canvasRect.top - (ITEM_HEIGHT / 2);
+            
+            // Clamp initial position
+            initialX = Math.max(0, Math.min(initialX, canvasRect.width - ITEM_WIDTH));
+            initialY = Math.max(0, Math.min(initialY, canvasHeight - ITEM_HEIGHT));
 
-    if (itemFromWardrobe) {
-        let xPos = e.clientX - canvasRect.left - (ITEM_WIDTH / 2);
-        let yPos = e.clientY - canvasRect.top - (ITEM_HEIGHT / 2);
-        xPos = Math.max(0, Math.min(xPos, canvasRect.width - ITEM_WIDTH));
-        yPos = Math.max(0, Math.min(yPos, canvasHeight - ITEM_HEIGHT));
-        let checkX = xPos;
-        let checkY = yPos;
-
-        let tries = 0;
-        const maxTries = (canvasRect.width / ITEM_WIDTH) * 10;
-        while (isOverlapping(checkX, checkY, -1, outfitPreview) && tries < maxTries) {
-            checkY += ITEM_HEIGHT;
-            if (checkY + ITEM_HEIGHT > canvasHeight) {
-                checkY = 0;
-                checkX += ITEM_WIDTH;
-            }
-            if (checkX + ITEM_WIDTH > canvasRect.width) {
-                checkX = 0;
-            }
-
-            tries++;
+            const newItem: CanvasItem = { 
+                ...droppedItem, 
+                instanceId: Date.now(),
+                x: initialX,
+                y: initialY,
+                zIndex: getZIndex(droppedItem.type),
+            };
+            setOutfitPreview(prev => [...prev, newItem]);
         }
-        if (tries >= maxTries) {
-            toast({
-                variant: 'destructive',
-                title: 'Canvas is full',
-                description: 'Could not find a space for the item.', 
-            });
-            return;
-        }
-        const itemToAdd: CanvasItem = {
-            ...itemFromWardrobe,
-            instanceId: Date.now(),
-            x: checkX,
-            y: checkY
-        };
-        setOutfitPreview(prevItems => [...prevItems, itemToAdd]);
     }
-}
   };
   
   const clearCanvas = () => {
@@ -221,36 +191,36 @@ if (data.type === 'wardrobe') {
 
   const pushToCart = () => {
     if (!outfitPreview.length) {
-      toast({
-        variant: 'destructive',
-        title: 'Nothing to Add',
-        description: 'Add some items to your canvas first.',
-      });
-      return;
+        toast({
+            variant: 'destructive',
+            title: 'Nothing to Add',
+            description: 'Add some items to your canvas first.',
+        });
+        return;
     }
-    
+
     setCartItems(prevCart => {
-      const updatedCart = [...prevCart];
+      const newCart = [...prevCart];
       outfitPreview.forEach(canvasItem => {
-        const existingItemIndex = updatedCart.findIndex(cartItem => cartItem.id === canvasItem.id);
-        if (existingItemIndex > -1) {
-          updatedCart[existingItemIndex] = {
-            ...updatedCart[existingItemIndex],
-            quantity: updatedCart[existingItemIndex].quantity + 1,
-          };
-        } else {
-          const {instanceId, x, y, ...item} = canvasItem;
-          updatedCart.push({ ...item, quantity: 1 });
-        }
+          const existingItemIndex = newCart.findIndex(cartItem => cartItem.id === canvasItem.id);
+          if (existingItemIndex > -1) {
+              newCart[existingItemIndex] = {
+                  ...newCart[existingItemIndex],
+                  quantity: newCart[existingItemIndex].quantity + 1,
+              };
+          } else {
+              const {instanceId, x, y, zIndex, ...item} = canvasItem;
+              newCart.push({ ...item, quantity: 1 });
+          }
       });
-      return updatedCart;
+      return newCart;
     });
 
     toast({
-      title: 'Added to Cart!',
-      description: 'Your outfit items are now in the cart.',
+        title: 'Added to Cart!',
+        description: 'Your outfit items are now in the cart.',
     });
-  };
+};
 
   const removeFromCanvas = (e: MouseEvent<HTMLButtonElement>, instanceId: number) => {
     e.stopPropagation();
@@ -403,23 +373,21 @@ if (data.type === 'wardrobe') {
                       key={item.instanceId}
                       draggable
                       onDragStart={(e) => onDragStartCanvasItem(e, item)}
-                      className="absolute group p-2 border rounded-lg flex items-center justify-center bg-card shadow-sm animate-in fade-in zoom-in-95 cursor-grab active:cursor-grabbing"
-                      style={{ left: `${item.x}px`, top: `${item.y}px`, width: `${ITEM_WIDTH}px`, height: `${ITEM_HEIGHT}px` }}
+                      className="absolute group flex items-center justify-center animate-in fade-in zoom-in-95 cursor-grab active:cursor-grabbing"
+                      style={{ left: `${item.x}px`, top: `${item.y}px`, width: `${ITEM_WIDTH}px`, height: `${ITEM_HEIGHT}px`, zIndex: item.zIndex }}
                     >
-                      <div className="w-[100px] h-[100px] rounded-md overflow-hidden">
-                        <Image
-                          src={item.imageUrl}
-                          alt={item.name}
-                          width={100}
-                          height={100}
-                          className="object-contain w-full h-full pointer-events-none"
-                          data-ai-hint={item.hint}
-                        />
-                      </div>
+                      <Image
+                        src={item.imageUrl}
+                        alt={item.name}
+                        width={ITEM_WIDTH}
+                        height={ITEM_HEIGHT}
+                        className="object-contain w-full h-full pointer-events-none"
+                        data-ai-hint={item.hint}
+                      />
                       <Button
                         variant="destructive"
                         size="icon"
-                        className="absolute -top-3 -right-3 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity rounded-full z-10"
+                        className="absolute -top-3 -right-3 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity rounded-full z-40"
                         onClick={(e) => removeFromCanvas(e, item.instanceId)}
                       >
                         <Trash2 className="w-3 h-3" />
